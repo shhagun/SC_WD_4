@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TaskFlow - Organize. Prioritize. Achieve.</title>
+
+<!-- Bootstrap CDN -->
+<link href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.3.2/css/bootstrap.min.css" rel="stylesheet">
+<!-- Bootstrap Icons CDN -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-icons/1.11.3/font/bootstrap-icons.min.css">
+
+<style>
+  :root{
+    --purple:#7c3aed;
+    --blue:#2563eb;
+    --pink:#ec4899;
+    --orange:#f97316;
+    --green:#10b981;
+
+    --bg: #f3f4fb;
+    --card-bg: #ffffff;
+    --text: #1f2333;
+    --text-muted: #6b7280;
+    --border: rgba(0,0,0,0.06);
+    --navbar-bg: rgba(255,255,255,0.85);
+    --shadow: 0 8px 24px rgba(31,35,51,0.08);
+    --shadow-hover: 0 14px 32px rgba(31,35,51,0.14);
+  }
+
+  [data-theme="dark"]{
+    --bg:#12131c;
+    --card-bg:#1b1d2b;
+    --text:#eef0f7;
+    --text-muted:#9ca0b5;
+    --border: rgba(255,255,255,0.08);
+    --navbar-bg: rgba(20,21,32,0.85);
+    --shadow: 0 8px 24px rgba(0,0,0,0.4);
+    --shadow-hover: 0 14px 34px rgba(0,0,0,0.55);
+  }
+
+  *{ transition: background-color .35s ease, color .35s ease, border-color .35s ease, box-shadow .25s ease; }
+
+  body{
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    min-height: 100vh;
+    padding-bottom: 60px;
+  }
+
+  /* NAVBAR */
+  .navbar-custom{
+    background: var(--navbar-bg);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    z-index: 1030;
+  }
+  .brand-icon{
+    width: 42px; height:42px;
+    background: linear-gradient(135deg, var(--purple), var(--pink));
+    border-radius: 12px;
+    display:flex; align-items:center; justify-content:center;
+    color:#fff; font-size:1.3rem;
+    box-shadow: 0 4px 14px rgba(124,58,237,0.4);
+  }
+  .brand-text{
+    font-weight: 800;
+    font-size: 1.4rem;
+    background: linear-gradient(90deg, var(--purple), var(--blue));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  #themeToggle{
+    width: 44px; height:44px;
+    border-radius: 50%;
+    display:flex; align-items:center; justify-content:center;
+    border: 1px solid var(--border);
+    background: var(--card-bg);
+    color: var(--text);
+    font-size: 1.2rem;
+  }
+  #themeToggle:hover{ transform: rotate(20deg); box-shadow: var(--shadow-hover); }
+
+  /* HERO */
+  .hero{
+    background: linear-gradient(120deg, var(--purple), var(--blue) 45%, var(--pink) 100%);
+    border-radius: 0 0 32px 32px;
+    color:#fff;
+    padding: 60px 20px 80px;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before{
+    content:"";
+    position:absolute; inset:0;
+    background: radial-gradient(circle at 80% 20%, rgba(255,255,255,0.18), transparent 55%);
+  }
+  .hero h1{
+    font-weight: 800;
+    font-size: 2.6rem;
+  }
+  .hero .highlight{
+    color: var(--orange);
+    text-shadow: 0 2px 12px rgba(0,0,0,0.15);
+  }
+  .hero p.tagline{
+    font-size: 1.1rem;
+    opacity: 0.95;
+    max-width: 560px;
+  }
+  #addTaskBtn{
+    background: #fff;
+    color: var(--purple);
+    font-weight: 700;
+    border: none;
+    padding: 12px 28px;
+    border-radius: 50px;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+  }
+  #addTaskBtn:hover{
+    transform: translateY(-3px);
+    box-shadow: 0 12px 26px rgba(0,0,0,0.28);
+    color: var(--purple);
+  }
+
+  /* STATS */
+  .stats-row{ margin-top: -50px; position: relative; z-index: 5; }
+  .stat-card{
+    background: var(--card-bg);
+    border-radius: 18px;
+    box-shadow: var(--shadow);
+    padding: 22px;
+    display:flex; align-items:center; gap:16px;
+    height: 100%;
+    border: 1px solid var(--border);
+  }
+  .stat-card:hover{ transform: translateY(-5px); box-shadow: var(--shadow-hover); }
+  .stat-icon{
+    width:54px; height:54px;
+    border-radius: 14px;
+    display:flex; align-items:center; justify-content:center;
+    font-size: 1.4rem;
+    color:#fff;
+    flex-shrink:0;
+  }
+  .stat-icon.total{ background: linear-gradient(135deg, var(--blue), #60a5fa); }
+  .stat-icon.pending{ background: linear-gradient(135deg, var(--orange), #fbbf24); }
+  .stat-icon.completed{ background: linear-gradient(135deg, var(--green), #34d399); }
+  .stat-icon.high{ background: linear-gradient(135deg, var(--pink), #f43f5e); }
+  .stat-number{ font-size: 1.6rem; font-weight: 800; line-height:1; }
+  .stat-label{ color: var(--text-muted); font-size: 0.85rem; margin-top:4px; }
+
+  /* TOOLBAR */
+  .toolbar{
+    background: var(--card-bg);
+    border-radius: 18px;
+    box-shadow: var(--shadow);
+    padding: 18px;
+    border: 1px solid var(--border);
+  }
+  .toolbar .form-select, .toolbar .form-control{
+    background: var(--bg);
+    color: var(--text);
+    border: 1px solid var(--border);
+  }
+  .toolbar .form-select:focus, .toolbar .form-control:focus{
+    box-shadow: 0 0 0 0.2rem rgba(124,58,237,0.2);
+    border-color: var(--purple);
+  }
+
+  /* BOARD */
+  .board-column{
+    background: var(--card-bg);
+    border-radius: 20px;
+    padding: 18px;
+    box-shadow: var(--shadow);
+    min-height: 300px;
+    border: 1px solid var(--border);
+    border-top: 5px solid transparent;
+  }
+  .board-column.high{ border-top-color: var(--pink); }
+  .board-column.medium{ border-top-color: var(--orange); }
+  .board-column.low{ border-top-color: var(--green); }
+
+  .board-column.drag-over{
+    background: color-mix(in srgb, var(--purple) 8%, var(--card-bg));
+    box-shadow: 0 0 0 3px var(--purple), var(--shadow-hover);
+  }
+
+  .column-header{
+    display:flex; align-items:center; justify-content:space-between;
+    margin-bottom: 14px;
+  }
+  .column-title{ font-weight: 700; display:flex; align-items:center; gap:8px; }
+  .column-count{
+    background: var(--bg);
+    border-radius: 50px;
+    padding: 2px 12px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--text-muted);
+  }
+
+  .task-card{
+    background: var(--bg);
+    border-radius: 14px;
+    padding: 14px;
+    margin-bottom: 12px;
+    border: 1px solid var(--border);
+    cursor: grab;
+    position: relative;
+  }
+  .task-card:hover{ transform: translateY(-3px); box-shadow: var(--shadow-hover); }
+  .task-card.dragging{ opacity: 0.4; }
+  .task-card.completed .task-title{ text-decoration: line-through; color: var(--text-muted); }
+  .task-card.completed{ opacity: 0.7; }
+
+  .task-title{ font-weight:700; margin-bottom:2px; }
+  .task-desc{ font-size:0.85rem; color: var(--text-muted); margin-bottom:8px; }
+  .task-meta{ display:flex; flex-wrap:wrap; gap:6px; margin-bottom:10px; }
+  .badge-priority-high{ background: var(--pink); }
+  .badge-priority-medium{ background: var(--orange); }
+  .badge-priority-low{ background: var(--green); }
+  .badge-category{ background: var(--blue); }
+  .task-due{ font-size:0.78rem; color: var(--text-muted); }
+  .task-actions{ display:flex; gap:6px; margin-top:8px; }
+  .task-actions button{
+    border: none;
+    border-radius: 8px;
+    padding: 5px 9px;
+    font-size: 0.85rem;
+  }
+  .btn-complete{ background: rgba(16,185,129,0.15); color: var(--green); }
+  .btn-edit{ background: rgba(37,99,235,0.15); color: var(--blue); }
+  .btn-delete{ background: rgba(236,72,153,0.15); color: var(--pink); }
+  .drag-handle{ position:absolute; top:12px; right:12px; color: var(--text-muted); cursor: grab; }
+
+  .empty-state{
+    text-align:center;
+    padding: 40px 10px;
+    color: var(--text-muted);
+  }
+  .empty-state .sparkle{ font-size: 2rem; display:block; margin-bottom:8px; }
+
+  .modal-content{ background: var(--card-bg); color: var(--text); border-radius: 18px; border: none;}
+  .modal-content .form-control, .modal-content .form-select{
+    background: var(--bg); color: var(--text); border: 1px solid var(--border);
+  }
+
+  #toastContainer{ z-index: 2000; }
+  .toast{ border-radius: 12px; overflow:hidden; }
+
+  @media (max-width: 767px){
+    .hero h1{ font-size: 2rem; }
+    .stats-row{ margin-top: -30px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav class="navbar navbar-custom py-3">
+  <div class="container d-flex align-items-center justify-content-between">
+    <div class="d-flex align-items-center gap-2">
+      <div class="brand-icon"><i class="bi bi-check2-square"></i></div>
+      <span class="brand-text">TaskFlow</span>
+    </div>
+    <button id="themeToggle" title="Toggle theme">
+      <i class="bi bi-moon-stars-fill" id="themeIcon"></i>
+    </button>
+  </div>
+</nav>
+
+<!-- HERO -->
+<div class="hero text-center">
+  <div class="container position-relative">
+    <h1>Organize. <span class="highlight">Prioritize.</span> Achieve.</h1>
+    <p class="tagline mx-auto">Manage your tasks beautifully and stay productive every day.</p>
+    <button class="btn" id="addTaskBtn"><i class="bi bi-plus-circle-fill me-2"></i>Add Task</button>
+  </div>
+</div>
+
+<div class="container">
+
+  <!-- STATS -->
+  <div class="row g-3 stats-row">
+    <div class="col-6 col-lg-3">
+      <div class="stat-card">
+        <div class="stat-icon total"><i class="bi bi-list-task"></i></div>
+        <div>
+          <div class="stat-number" id="statTotal">0</div>
+          <div class="stat-label">Total Tasks</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-6 col-lg-3">
+      <div class="stat-card">
+        <div class="stat-icon pending"><i class="bi bi-hourglass-split"></i></div>
+        <div>
+          <div class="stat-number" id="statPending">0</div>
+          <div class="stat-label">Pending Tasks</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-6 col-lg-3">
+      <div class="stat-card">
+        <div class="stat-icon completed"><i class="bi bi-check-circle"></i></div>
+        <div>
+          <div class="stat-number" id="statCompleted">0</div>
+          <div class="stat-label">Completed Tasks</div>
+        </div>
+      </div>
+    </div>
+    <div class="col-6 col-lg-3">
+      <div class="stat-card">
+        <div class="stat-icon high"><i class="bi bi-fire"></i></div>
+        <div>
+          <div class="stat-number" id="statHigh">0</div>
+          <div class="stat-label">High Priority</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOOLBAR -->
+  <div class="toolbar mt-4">
+    <div class="row g-2 align-items-center">
+      <div class="col-12 col-md-4">
+        <div class="input-group">
+          <span class="input-group-text bg-transparent border-0"><i class="bi bi-search"></i></span>
+          <input type="text" id="searchInput" class="form-control" placeholder="Search tasks...">
+        </div>
+      </div>
+      <div class="col-6 col-md-2">
+        <select id="filterStatus" class="form-select">
+          <option value="all">Status: All</option>
+          <option value="pending">Pending</option>
+          <option value="completed">Completed</option>
+        </select>
+      </div>
+      <div class="col-6 col-md-2">
+        <select id="filterPriority" class="form-select">
+          <option value="all">Priority: All</option>
+          <option value="high">High</option>
+          <option value="medium">Medium</option>
+          <option value="low">Low</option>
+        </select>
+      </div>
+      <div class="col-6 col-md-2">
+        <select id="filterCategory" class="form-select">
+          <option value="all">Category: All</option>
+          <option value="Work">Work</option>
+          <option value="Study">Study</option>
+          <option value="Personal">Personal</option>
+          <option value="Shopping">Shopping</option>
+          <option value="Other">Other</option>
+        </select>
+      </div>
+      <div class="col-6 col-md-2 text-md-end">
+        <button class="btn btn-outline-secondary w-100" id="clearFiltersBtn"><i class="bi bi-x-circle me-1"></i>Clear</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- BOARD -->
+  <div class="row g-3 mt-1 mb-5" id="boardRow">
+    <div class="col-12 col-lg-4">
+      <div class="board-column high" data-priority="high" id="col-high">
+        <div class="column-header">
+          <div class="column-title text-danger"><i class="bi bi-circle-fill" style="font-size:0.6rem;"></i> High Priority</div>
+          <span class="column-count" id="count-high">0</span>
+        </div>
+        <div class="task-list" id="list-high"></div>
+      </div>
+    </div>
+    <div class="col-12 col-lg-4">
+      <div class="board-column medium" data-priority="medium" id="col-medium">
+        <div class="column-header">
+          <div class="column-title text-warning"><i class="bi bi-circle-fill" style="font-size:0.6rem;"></i> Medium Priority</div>
+          <span class="column-count" id="count-medium">0</span>
+        </div>
+        <div class="task-list" id="list-medium"></div>
+      </div>
+    </div>
+    <div class="col-12 col-lg-4">
+      <div class="board-column low" data-priority="low" id="col-low">
+        <div class="column-header">
+          <div class="column-title text-success"><i class="bi bi-circle-fill" style="font-size:0.6rem;"></i> Low Priority</div>
+          <span class="column-count" id="count-low">0</span>
+        </div>
+        <div class="task-list" id="list-low"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- TASK MODAL -->
+<div class="modal fade" id="taskModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header border-0">
+        <h5 class="modal-title" id="taskModalTitle">Add New Task</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <form id="taskForm" class="needs-validation" novalidate>
+          <input type="hidden" id="taskId">
+          <div class="mb-3">
+            <label class="form-label">Task Title</label>
+            <input type="text" class="form-control" id="taskTitle" minlength="3" maxlength="100" required>
+            <div class="invalid-feedback" id="titleFeedback">Please enter a task title.</div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Description (optional)</label>
+            <textarea class="form-control" id="taskDescription" maxlength="250" rows="3"></textarea>
+          </div>
+          <div class="row g-2">
+            <div class="col-6">
+              <label class="form-label">Priority</label>
+              <select class="form-select" id="taskPriority">
+                <option value="high">🔴 High</option>
+                <option value="medium" selected>🟠 Medium</option>
+                <option value="low">🟢 Low</option>
+              </select>
+            </div>
+            <div class="col-6">
+              <label class="form-label">Category</label>
+              <select class="form-select" id="taskCategory">
+                <option value="Work">Work</option>
+                <option value="Study">Study</option>
+                <option value="Personal">Personal</option>
+                <option value="Shopping">Shopping</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+          </div>
+          <div class="mb-3 mt-2">
+            <label class="form-label">Due Date</label>
+            <input type="date" class="form-control" id="taskDueDate">
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer border-0">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-primary" id="saveTaskBtn" style="background: linear-gradient(90deg, var(--purple), var(--blue)); border:none;">Save Task</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- DELETE CONFIRM MODAL -->
+<div class="modal fade" id="deleteModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header border-0">
+        <h5 class="modal-title"><i class="bi bi-exclamation-triangle-fill text-danger me-2"></i>Delete Task?</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        Are you sure you want to delete this task?
+      </div>
+      <div class="modal-footer border-0">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-danger" id="confirmDeleteBtn">Delete</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- TOASTS -->
+<div class="toast-container position-fixed bottom-0 end-0 p-3" id="toastContainer"></div>
+
+<!-- Bootstrap JS Bundle -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.3.2/js/bootstrap.bundle.min.js"></script>
+
+<script>
+(function(){
+  'use strict';
+
+  // ---------- STATE ----------
+  let tasks = [];
+  let currentFilter = { search:'', status:'all', priority:'all', category:'all' };
+  let deleteTargetId = null;
+  let draggedTaskId = null;
+
+  const taskModalEl = document.getElementById('taskModal');
+  const taskModal = new bootstrap.Modal(taskModalEl);
+  const deleteModalEl = document.getElementById('deleteModal');
+  const deleteModal = new bootstrap.Modal(deleteModalEl);
+
+  // ---------- STORAGE ----------
+  function saveData(){
+    localStorage.setItem('taskflow_tasks', JSON.stringify(tasks));
+  }
+
+  function loadData(){
+    const stored = localStorage.getItem('taskflow_tasks');
+    tasks = stored ? JSON.parse(stored) : [];
+  }
+
+  // ---------- THEME ----------
+  function loadTheme(){
+    const theme = localStorage.getItem('taskflow_theme') || 'light';
+    applyTheme(theme, false);
+  }
+
+  function applyTheme(theme, notify){
+    if(theme === 'dark'){
+      document.documentElement.setAttribute('data-theme','dark');
+      document.getElementById('themeIcon').className = 'bi bi-sun-fill';
+    } else {
+      document.documentElement.removeAttribute('data-theme');
+      document.getElementById('themeIcon').className = 'bi bi-moon-stars-fill';
+    }
+    localStorage.setItem('taskflow_theme', theme);
+    if(notify){
+      if(theme === 'dark') showNotification('Night mode enabled! 🌙','info');
+      else showNotification('Day mode enabled! ☀️','info');
+    }
+  }
+
+  function toggleTheme(){
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+    applyTheme(isDark ? 'light' : 'dark', true);
+  }
+
+  document.getElementById('themeToggle').addEventListener('click', toggleTheme);
+
+  // ---------- NOTIFICATIONS ----------
+  function showNotification(message, type){
+    type = type || 'success';
+    const iconMap = {
+      success: 'bi-check-circle-fill text-success',
+      error: 'bi-x-circle-fill text-danger',
+      info: 'bi-info-circle-fill text-primary'
+    };
+    const toastEl = document.createElement('div');
+    toastEl.className = 'toast align-items-center border-0 shadow';
+    toastEl.setAttribute('role','alert');
+    toastEl.innerHTML = `
+      <div class="d-flex">
+        <div class="toast-body d-flex align-items-center gap-2">
+          <i class="bi ${iconMap[type] || iconMap.success}"></i>
+          <span>${escapeHtml(message)}</span>
+        </div>
+        <button type="button" class="btn-close me-2 m-auto" data-bs-dismiss="toast"></button>
+      </div>`;
+    document.getElementById('toastContainer').appendChild(toastEl);
+    const toast = new bootstrap.Toast(toastEl, { delay: 3000 });
+    toast.show();
+    toastEl.addEventListener('hidden.bs.toast', () => toastEl.remove());
+  }
+
+  // ---------- HELPERS ----------
+  function escapeHtml(str){
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+  }
+
+  function generateId(){
+    return 'task_' + Date.now() + '_' + Math.floor(Math.random()*10000);
+  }
+
+  function formatDate(dateStr){
+    if(!dateStr) return 'No due date';
+    const d = new Date(dateStr + 'T00:00:00');
+    if(isNaN(d)) return 'No due date';
+    return d.toLocaleDateString(undefined, { month:'short', day:'numeric', year:'numeric' });
+  }
+
+  function priorityLabel(p){
+    return p === 'high' ? 'High' : p === 'medium' ? 'Medium
